@@ -3,7 +3,7 @@
 	<uses-sdk android:minSdkVersion="24" android:targetSdkVersion="27" />
 	<application android:label="PlugEVMe.Android" android:icon="@drawable/icon">
 		<!-- TODO: Add your Android maps key -->
-		<meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyCFa3vsh1lx4T1yORyhu2I0iaEh-24XYHU" />
+		<meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="" />
 		<meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
 		<!-- Necessary for apps that target Android 9.0 or higher -->
 		<uses-library android:name="org.apache.http.legacy" android:required="false" />

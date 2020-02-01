@@ -1,10 +1,13 @@
 ﻿using Newtonsoft.Json;
+using PropertyChanged;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace PlugEVMe.Models
 {
+    // See BaseVieWModel for explanation of property changes
+    [AddINotifyPropertyChangedInterface]
     class PlugEVMeAddress
     {
 

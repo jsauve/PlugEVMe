@@ -6,88 +6,29 @@ using Xamarin.Forms;
 
 namespace PlugEVMe.ViewModels
 {
+    // See BaseVieWModel for explanation of property changes
 	public class NewEntryViewModel : BaseViewModel
     {
 		readonly ILocationService _locService;
 
-        string _title;
-		public string Title
-		{
-			get { return _title; }
-			set
-			{
-				_title = value;
-				OnPropertyChanged();
-				SaveCommand.ChangeCanExecute();
-			}
-		}
+        public string Title { get; set; }
 
-		double _latitude;
-		public double Latitude
-		{
-			get { return _latitude; }
-			set
-			{
-				_latitude = value;
-				OnPropertyChanged();
-			}
-		}
+        public double Latitude { get; set; }
 
-		double _longitude;
-		public double Longitude
-		{
-			get { return _longitude; }
-			set
-			{
-				_longitude = value;
-				OnPropertyChanged();
-			}
-		}
+        public double Longitude { get; set; }
 
-		DateTime _date;
-		public DateTime Date
-		{
-			get { return _date; }
-			set
-			{
-				_date = value;
-				OnPropertyChanged();
-			}
-		}
+        public DateTime Date { get; set; }
 
-		int _rating;
-		public int Rating
-		{
-			get { return _rating; }
-			set
-			{
-				_rating = value;
-				OnPropertyChanged();
-			}
-		}
+        public int Rating { get; set; }
 
-		string _notes;
-		public string Notes
-		{
-			get { return _notes; }
-			set
-			{
-				_notes = value;
-				OnPropertyChanged();
-			}
-		}
+        public string Notes { get; set; }
 
-		Command _saveCommand;
-		public Command SaveCommand
-		{
-			get
-			{
-				return _saveCommand ?? (_saveCommand = new Command(async () => await ExecuteSaveCommand(), CanSave));
-			}
-		}
+        // I got rid of a bunch of unnecessary code around your commands.
+        // Just use a public getter for each command, and then set the command in your constuctor. Much cleaner.
+		public Command SaveCommand { get; }
 
         public NewEntryViewModel(INavService navService, ILocationService locService,
-            IPlugEVMeDataService plugMeService,
+            //IPlugEVMeDataService plugMeService,
             IAnalyticsService analyticsService)
             : base(navService, analyticsService)
         {
@@ -95,7 +36,9 @@ namespace PlugEVMe.ViewModels
 
             Date = DateTime.Today;
             Rating = 1;
-        }
+
+			SaveCommand = new Command(async () => await ExecuteSaveCommand(), CanSave);
+		}
 
         public override async Task Init()
 		{

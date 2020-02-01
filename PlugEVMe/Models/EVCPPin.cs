@@ -1,10 +1,13 @@
 ﻿using System;
 using System.ComponentModel;
+using PropertyChanged;
 using Xamarin.Forms.Maps;
 
 namespace PlugEVMe.Models
 {
-    public class EVCPPin : Pin, INotifyPropertyChanged
+    // See BaseVieWModel for explanation of property changes
+    [AddINotifyPropertyChangedInterface]
+    public class EVCPPin : Pin
     {
         private Position _position;
         public string Name { get; set; }
@@ -19,29 +22,10 @@ namespace PlugEVMe.Models
         public Uri Url { get; internal set; }
         public string Address { get; }
 
-        public Position Position
-        {
-            get => _position;
-            set
-            {
-                if (!_position.Equals(value))
-                {
-                    _position = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Position)));
-                }
-            }
-        }
+        public Position Position { get; set; }
 
         public EVCPPin()
         {
         }
-
-
-        #region INotifyPropertyChanged
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        #endregion
-
     }
 }

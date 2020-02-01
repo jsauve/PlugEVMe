@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MvvmHelpers;
+using Newtonsoft.Json;
 using PlugEVMe.Models;
 using PlugEVMe.ViewModels;
 using System;
@@ -16,10 +17,7 @@ namespace PlugEVMe.Views
         private bool _IsOn;
         public ICommand NavigateCommand { get; set; }
 
-        MainViewModel _vm
-        {
-            get { return BindingContext as MainViewModel; }
-        }
+        MainViewModel _vm => BindingContext as MainViewModel;
 
         public MainPage()
         {
@@ -51,22 +49,22 @@ namespace PlugEVMe.Views
             looks.SelectedItem = null;
         }
 
-        protected override async void OnAppearing()
+        // Even though you CAN set the view lifecycle methods as async...you shouldn't.
+        // https://channel9.msdn.com/Shows/On-NET/Brandon-Minnick-asyncawait-best-practices
+        // https://github.com/brminnick/AsyncAwaitBestPractices
+        protected override void OnAppearing()
         {
             base.OnAppearing();
 
             // Initialize MainViewModel
-            if (_vm != null)
-            {
-                await _vm.Init();
-            }
+            _vm?.Init()?.SafeFireAndForget();
         }
 
         protected void ShowEntriesButton_Click(object sender, EventArgs e)
         {
             (sender as Button).Text = "Show was just clicked!";
-            var looks = (ObservableCollection<PlugEVMeEntry>)this.looks.ItemsSource;
-            var clone = JsonConvert.DeserializeObject<ObservableCollection<PlugEVMeEntry>>(JsonConvert.SerializeObject(looks));
+            var looks = (ObservableRangeCollection<PlugEVMeEntry>)this.looks.ItemsSource;
+            var clone = JsonConvert.DeserializeObject<ObservableRangeCollection<PlugEVMeEntry>>(JsonConvert.SerializeObject(looks));
             _vm.PinsCommand.Execute(clone);
 
         }

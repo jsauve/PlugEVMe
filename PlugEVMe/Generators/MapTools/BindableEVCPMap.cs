@@ -1,5 +1,7 @@
-﻿using PlugEVMe.Models;
+﻿using MvvmHelpers;
+using PlugEVMe.Models;
 using PlugEVMe.ViewModels;
+using PropertyChanged;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,21 +14,19 @@ using Xamarin.Forms.Maps;
 
 namespace PlugEVMe.Generators.MapTools
 {
-    public class BindableEVCPMap : Map, INotifyPropertyChanged
+    [AddINotifyPropertyChangedInterface]
+    public class BindableEVCPMap : Map
     {
         public BindableEVCPMap()
         {
-            EVCPPinsSource = new ObservableCollection<EVCPPin>();
+            EVCPPinsSource = new ObservableRangeCollection<EVCPPin>();
             EVCPPinsSource.CollectionChanged += PinsSourceOnCollectionChanged;
         }
-        public ObservableCollection<EVCPPin> EVCPPinsSource
-        {
-            get { return (ObservableCollection<EVCPPin>)GetValue(EVCPPinsProperty); }
-            set { SetValue(EVCPPinsProperty, value); }
-        }
+        public ObservableRangeCollection<EVCPPin> EVCPPinsSource { get; } = new ObservableRangeCollection<EVCPPin>();
+
         public static readonly BindableProperty EVCPPinsProperty = BindableProperty.Create(
         propertyName: "EVCPPinsSource",
-        returnType: typeof(ObservableCollection<EVCPPin>),
+        returnType: typeof(ObservableRangeCollection<EVCPPin>),
         declaringType: typeof(BindableEVCPMap),
         defaultValue: null,
         defaultBindingMode: BindingMode.TwoWay,
@@ -57,7 +57,7 @@ namespace PlugEVMe.Generators.MapTools
         private static void PinsSourcePropertyChanged(BindableObject bindable, object oldvalue, object newValue)
         {
             var thisInstance = bindable as BindableEVCPMap;
-            var newPinsSource = newValue as ObservableCollection<EVCPPin>;
+            var newPinsSource = newValue as ObservableRangeCollection<EVCPPin>;
             if (thisInstance == null ||
             newPinsSource == null)
                 return;

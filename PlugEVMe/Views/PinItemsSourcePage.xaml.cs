@@ -18,23 +18,39 @@ namespace PlugEVMe.Views
             get { return BindingContext as PinItemsSourcePageViewModel; }
         }
 
+        bool _MapHasBeenInitialized;
+
         public PinItemsSourcePage()
         {
             InitializeComponent();
+
+            map.PropertyChanged += Map_PropertyChanged;
         }
 
-        protected override async void OnAppearing()
+        private void Map_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            Debug.WriteLine($"Map property changed: {e.PropertyName}");
+
+            switch (e.PropertyName)
+            {
+                case nameof(Map.VisibleRegion):
+                    if (!_MapHasBeenInitialized && map.VisibleRegion != null)
+                    {
+                        map.MoveToRegion(MapSpan.FromCenterAndRadius(new Position(53.8283459, -1.5794797), Distance.FromMiles(5000)));
+                        _MapHasBeenInitialized = true;
+                    }
+                    break;
+            }
+        }
+
+        protected override void OnAppearing()
         {
             base.OnAppearing();
 
-            if (_vm != null)
+            if (map.VisibleRegion != null)
             {
-                _vm.IsBusy = true;
-                map = new Map();
-                map.IsVisible = true;
                 map.MoveToRegion(MapSpan.FromCenterAndRadius(new Position(53.8283459, -1.5794797), Distance.FromMiles(5000)));
-                //map.MapClicked += OnMapClicked;
-                //_vm.PropertyChanged += OnViewModelPropertyChanged;
+                _MapHasBeenInitialized = true;
             }
         }
 
@@ -43,19 +59,13 @@ namespace PlugEVMe.Views
             if (args.PropertyName == nameof(PinItemsSourcePageViewModel.Locations))
             {
 
-                
+
             }
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-
-            if (_vm != null)
-            {
-                _vm.IsBusy = false;
-                _vm.PropertyChanged -= OnViewModelPropertyChanged;
-            }
         }
 
         void OnMapClicked(object sender, MapClickedEventArgs e)

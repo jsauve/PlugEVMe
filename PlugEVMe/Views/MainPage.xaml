@@ -14,7 +14,7 @@
         <StackLayout>
             <ListView x:Name="looks" ItemsSource="{Binding LogEntries}" ItemTapped="Looks_ItemTapped"
 				  IsPullToRefreshEnabled="True"
-				  IsRefreshing="{Binding IsBusy, Mode=OneWay}"
+				  IsRefreshing="{Binding IsBusy}"
 				  RefreshCommand="{Binding RefreshCommand}">
                 <ListView.Header>
                     <StackLayout>

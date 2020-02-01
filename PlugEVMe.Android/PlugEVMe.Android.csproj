@@ -15,7 +15,6 @@
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
     <MonoAndroidResourcePrefix>Resources</MonoAndroidResourcePrefix>
     <MonoAndroidAssetsPrefix>Assets</MonoAndroidAssetsPrefix>
-    <AndroidUseLatestPlatformSdk>false</AndroidUseLatestPlatformSdk>
     <TargetFrameworkVersion>v9.0</TargetFrameworkVersion>
     <AndroidEnableSGenConcurrent>true</AndroidEnableSGenConcurrent>
     <AndroidUseAapt2>true</AndroidUseAapt2>
@@ -119,7 +118,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PlugEVMe\PlugEVMe.csproj">
-      <Project>{2C4DDD9C-3D02-4EF3-A8BF-DA3DE279324F}</Project>
+      <Project>{0084B51F-80AF-4B31-B0EA-9F860941CC25}</Project>
       <Name>PlugEVMe</Name>
     </ProjectReference>
   </ItemGroup>

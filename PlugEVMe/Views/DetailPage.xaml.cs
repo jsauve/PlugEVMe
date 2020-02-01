@@ -26,12 +26,6 @@ namespace PlugEVMe.Views
         protected override void OnAppearing()
         {
             base.OnAppearing();
-
-            if (_vm != null)
-            {
-                _vm.IsBusy = true;
-                _vm.PropertyChanged += OnViewModelPropertyChanged;
-            }
         }
 
         private async void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs args)
@@ -45,12 +39,6 @@ namespace PlugEVMe.Views
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-
-            if (_vm != null)
-            {
-                _vm.IsBusy = false;
-                _vm.PropertyChanged -= OnViewModelPropertyChanged;
-            }
         }
     }
 }

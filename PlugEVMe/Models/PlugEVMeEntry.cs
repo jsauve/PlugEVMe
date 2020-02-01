@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using PropertyChanged;
 using Xamarin.Essentials;
 
 namespace PlugEVMe.Models
 {
-	public class PlugEVMeEntry
+    // See BaseVieWModel for explanation of property changes
+    [AddINotifyPropertyChangedInterface]
+    public class PlugEVMeEntry
     {
  //       [JsonProperty("id")]
         public string Id { get; set; }
@@ -30,7 +33,6 @@ namespace PlugEVMe.Models
             Rating = 0;
             Notes = Latitude.ToString() + " " + Longitude.ToString();
             Title = "Default Title " + Id;
-            OnPropertyChanged(lat + " " + lon + " ");
         }
 
         public PlugEVMeEntry()
@@ -42,19 +44,18 @@ namespace PlugEVMe.Models
             Rating = 0;
             Notes = Latitude.ToString() + " " + Longitude.ToString();
             Title = "Default Title " + Id;
-            OnPropertyChanged(Latitude + " " + Longitude + " ");
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        void OnPropertyChanged(string propertyName = null)
+        // by conforming to On[MyProperty]Changed, this will fire when Latitude changes
+        public void OnLatitudeChanged()
         {
-            PropertyChangedEventHandler handler = PropertyChanged;
+            Debug.WriteLine($@"{nameof(Latitude)} changed:{Environment.NewLine}  Lat {Latitude}{Environment.NewLine}  Lon {Longitude}{Environment.NewLine}");
+        }
 
-            Debug.WriteLine("NOTIFYPROPERTYCHANGED PlugEVMeEntry : " + handler);
-  
-            if (handler != null)
-                handler(this, new PropertyChangedEventArgs(propertyName));
+        // by conforming to On[MyProperty]Changed, this will fire when Longitude changes
+        public void OnLongitudeChanged()
+        {
+            Debug.WriteLine($@"{nameof(Longitude)} changed:{Environment.NewLine}  Lat {Latitude}{Environment.NewLine}  Lon {Longitude}{Environment.NewLine}");
         }
     }
 

@@ -48,7 +48,8 @@ namespace PlugEVMe.Services
 			{
 				try
 				{
-					await ((BaseViewModel)(XamarinFormsNav.NavigationStack.Last().BindingContext)).Init();
+					var bindingContext = XamarinFormsNav.NavigationStack.Last().BindingContext;
+					await (bindingContext as BaseViewModel).Init();
 				}
 				catch (AppException e)
 				{

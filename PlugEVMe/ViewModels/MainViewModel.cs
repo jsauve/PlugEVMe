@@ -1,4 +1,5 @@
 ﻿using Akavache;
+using MvvmHelpers;
 using Newtonsoft.Json;
 using PlugEVMe.Exceptions;
 using PlugEVMe.Generators;
@@ -12,73 +13,87 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
-using Xamarin.Forms;
 using Xamarin.Forms.Maps;
+using MvvmHelpers.Commands;
 using Position = Plugin.Geolocator.Abstractions.Position;
+using System.Windows.Input;
 
 namespace PlugEVMe.ViewModels
 {
+    // See BaseVieWModel for explanation of property changes
     public class MainViewModel : BaseViewModel
     {
         readonly IBlobCache _cache;
 
-        ObservableCollection<PlugEVMeEntry> _logEntries = new ObservableCollection<PlugEVMeEntry>();
-        PlugEVMeEntry _homeentry;
+        public ObservableRangeCollection<PlugEVMeEntry> LogEntries { get; set; } = new ObservableRangeCollection<PlugEVMeEntry>();
 
-        public ObservableCollection<PlugEVMeEntry> LogEntries
+        public PlugEVMeEntry homeEntry { get; set; }
+
+        // I got rid of a bunch of unnecessary code around your commands.
+        // Just use a public getter for each command, and then set the command in your constuctor. Much cleaner.
+        public Command<ObservableRangeCollection<PlugEVMeEntry>> PinsCommand { get; }
+
+        public Command<PlugEVMeEntry> ViewCommand { get; }
+
+        public ICommand NewCommand { get; }
+
+        public AsyncCommand RefreshCommand { get; }
+
+        public AsyncCommand InitCommand { get; }
+
+        public MainViewModel(INavService navService, IBlobCache cache, IAnalyticsService analyticsService) : base(navService, analyticsService)
         {
-            get { return _logEntries; }
-            set
-            {
-                _logEntries = value;
-                OnPropertyChanged();
-            }
+            _cache = cache;
+
+            PinsCommand = new Command<ObservableRangeCollection<PlugEVMeEntry>>(async (entries) => await ExecutePinsCommand(entries));
+
+            ViewCommand = new Command<PlugEVMeEntry>(async (entry) => await ExecuteViewCommand(entry));
+
+            NewCommand = new Command(async () => await ExecuteNewCommand());
+
+            RefreshCommand = new AsyncCommand(async () => await LoadEntries());
         }
 
-        public PlugEVMeEntry homeEntry
+        public override async Task Init()
         {
-            get { return _homeentry; }
-            set
-            {
-                _homeentry = value;
-                OnPropertyChanged();
-            }
+            await LoadHomeEntry();
+            await LoadEntries();
         }
 
         public async Task LoadHomeEntry()
         {
-            Position CrossGeolocator;
-            if (IsBusy)
-            {
-                return;
-            }
-
-            IsBusy = true;
             try
             {
+                if (IsBusy)
+                    return;
 
-                if (!Plugin.Geolocator.CrossGeolocator.IsSupported) { CrossGeolocator = new Position(); }
-                if (!Plugin.Geolocator.CrossGeolocator.Current.IsGeolocationEnabled) { CrossGeolocator = new Position(); }
-                if (!Plugin.Geolocator.CrossGeolocator.Current.IsGeolocationAvailable) { CrossGeolocator = new Position(); }
+                IsBusy = true;
+
+
+                Position position;
+
+                if (!Plugin.Geolocator.CrossGeolocator.IsSupported) { position = new Position(); }
+                if (!Plugin.Geolocator.CrossGeolocator.Current.IsGeolocationEnabled) { position = new Position(); }
+                if (!Plugin.Geolocator.CrossGeolocator.Current.IsGeolocationAvailable) { position = new Position(); }
 
                 // perhaps use a flag variable to enable/disable returning locations
                 var locator = Plugin.Geolocator.CrossGeolocator.Current;
                 locator.DesiredAccuracy = 100;
-                CrossGeolocator = await locator.GetPositionAsync(TimeSpan.FromSeconds(120));
+                position = await locator.GetPositionAsync(TimeSpan.FromSeconds(120));
 
                 PlugEVMeEntry entry = new PlugEVMeEntry();
 
-                entry.Latitude = CrossGeolocator.Latitude;
-                entry.Longitude = CrossGeolocator.Longitude;
+                entry.Latitude = position.Latitude;
+                entry.Longitude = position.Longitude;
                 entry.Title = "Me";
                 entry.Date = DateTime.Now;
                 entry.Id = "1";
 
 
-                if (CrossGeolocator.Latitude != 0.0 && CrossGeolocator.Longitude != 0.0)
+                if (position.Latitude != 0.0 && position.Longitude != 0.0)
                 {
-                    Double lat = Convert.ToDouble(CrossGeolocator.Latitude);
-                    Double lon = Convert.ToDouble(CrossGeolocator.Longitude);
+                    Double lat = Convert.ToDouble(position.Latitude);
+                    Double lon = Convert.ToDouble(position.Longitude);
                     var placemarks = await Geocoding.GetPlacemarksAsync(lat, lon);
                     var placemark = placemarks?.FirstOrDefault();
                     entry.Notes = placemark.ToString();
@@ -97,82 +112,28 @@ namespace PlugEVMe.ViewModels
             }
             finally
             {
-                CrossGeolocator = null;
                 IsBusy = false;
             }
-
         }
 
-        Command<ObservableCollection<PlugEVMeEntry>> _pinsCommand;
-        public Command<ObservableCollection<PlugEVMeEntry>> PinsCommand
+        async Task LoadEntries()
         {
-            get
-            {
-                _pinsCommand = new Command<ObservableCollection<PlugEVMeEntry>>(async (entries) => await ExecutePinsCommand(entries));
-                ((Command)_pinsCommand).CanExecute(true);
-                return _pinsCommand;
-            }
-        }
-
-        Command<PlugEVMeEntry> _viewCommand;
-        public Command<PlugEVMeEntry> ViewCommand
-        {
-            get
-            {
-                return _viewCommand ?? (_viewCommand = new Command<PlugEVMeEntry>(async (entry) => await ExecuteViewCommand(entry)));
-            }
-        }
-        
-        Command _newCommand;
-    
-        public Command NewCommand
-        {
-            get
-            {
-                return _newCommand ?? (_newCommand = new Command(async () => await ExecuteNewCommand()));
-            }
-        }
-
-
-        Command _refreshCommand;
-        public Command RefreshCommand
-        {
-            get
-            {
-                return _refreshCommand ?? (_refreshCommand = new Command(LoadEntries));
-            }
-        }
-
-        public MainViewModel(INavService navService,
-            IBlobCache cache, IAnalyticsService analyticsService)
-            : base(navService, analyticsService)
-        {
-            _cache = cache;
-        }
-
-        public override async Task Init()
-        {
-            await LoadHomeEntry();
-            LoadEntries();
-        }
-
-        void LoadEntries()
-        {
-            if (IsBusy)
-            {
-                return;
-            }
-
-            IsBusy = false;  
-            LogEntries.Clear();
-
             try
             {
+                if (IsBusy)
+                    return;
+
+                IsBusy = true;
+
+                LogEntries.Clear();
+
                 ReadLibraries readLibraries = new ReadLibraries();
                 List<string> libraries = readLibraries.libraries;
 
-                // Load the current position homeentry and test values
-                LogEntries.Insert(0, homeEntry);
+                var tempEntries = new List<PlugEVMeEntry>();
+
+                tempEntries.Add(homeEntry);
+
                 foreach (string library in libraries)
                 {
                     PlugEVMeEntry _entry = new PlugEVMeEntry();
@@ -187,22 +148,29 @@ namespace PlugEVMe.ViewModels
                     _entry.Title = libs[0];
                     _entry.Date = DateTime.Now;
                     _entry.Title = string.Join(" ", libs);
-                    _entry.Notes = _entry.Latitude + " " +_entry.Longitude;
-                    LogEntries.Add(_entry);
+                    _entry.Notes = _entry.Latitude + " " + _entry.Longitude;
+                    tempEntries.Add(_entry);
                 }
+
+                // AddRange() in ObservableRangeCollection differs from Add() in ObservableCollection in that it fires a single 
+                // CollectionChanged notification when all the items are added to the collection at once, instead of many individual
+                // CollectionChanged notifications from calling Add() over and over.
+                LogEntries.AddRange(tempEntries);
             }
             finally
             {
                 IsBusy = false;
             }
+
+            await Task.CompletedTask;
         }
 
-        async Task ExecutePinsCommand(ObservableCollection<PlugEVMeEntry> entries)
+        async Task ExecutePinsCommand(ObservableRangeCollection<PlugEVMeEntry> entries)
         {
             try
             {
-                var clone = JsonConvert.DeserializeObject<ObservableCollection<PlugEVMeEntry>>(JsonConvert.SerializeObject(entries));
-                await NavService.NavigateTo<PinItemsSourcePageViewModel, ObservableCollection<PlugEVMeEntry>>(clone);
+                var clone = JsonConvert.DeserializeObject<ObservableRangeCollection<PlugEVMeEntry>>(JsonConvert.SerializeObject(entries));
+                await NavService.NavigateTo<PinItemsSourcePageViewModel, ObservableRangeCollection<PlugEVMeEntry>>(clone);
             }
             catch (AppException e)
             {

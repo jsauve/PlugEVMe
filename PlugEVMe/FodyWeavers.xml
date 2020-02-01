@@ -1,0 +1,4 @@
+﻿<Weavers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="FodyWeavers.xsd">
+  <!-- This file NEEDS to be here for Fody to do it's weaving thing. In this case, we're letting Fody know about the PropertyChanged lib. -->
+  <PropertyChanged />
+</Weavers>

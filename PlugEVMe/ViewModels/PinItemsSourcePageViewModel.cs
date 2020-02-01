@@ -23,35 +23,15 @@ using Map = Xamarin.Forms.Maps.Map;
 
 namespace PlugEVMe.ViewModels
 {
-    public class PinItemsSourcePageViewModel : BaseViewModel<ObservableCollection<PlugEVMeEntry>>
+    // See BaseVieWModel for explanation of property changes
+    public class PinItemsSourcePageViewModel : BaseViewModel<ObservableRangeCollection<PlugEVMeEntry>>
     {
         int _pinCreatedCount = 0;
         readonly IBlobCache _cache;
-        
-        ObservableCollection<Pin> _locations;
-        ObservableCollection<PlugEVMeEntry> _logEntries;
 
-        public ObservableCollection<Pin> Locations
-        {
-            get { return _locations; }
-            set
-            {
-                _locations = value;
-                OnPropertyChanged();
-            }
-        }
+        public ObservableRangeCollection<Pin> Locations { get; set; } = new ObservableRangeCollection<Pin>();
 
-        public ObservableCollection<PlugEVMeEntry> LogEntries
-        {
-            get { return _logEntries; }
-            set
-            {
-                _logEntries = value;
-                OnPropertyChanged();
-            }
-        }
-        
-        public event PropertyChangedEventHandler PropertyChanged;
+        public ObservableRangeCollection<PlugEVMeEntry> LogEntries { get; set; } = new ObservableRangeCollection<PlugEVMeEntry>();
 
         public ICommand AddLocationCommand { get; }
         public ICommand RemoveLocationCommand { get; }
@@ -65,32 +45,32 @@ namespace PlugEVMe.ViewModels
         {
             AddLocationCommand = new Command(AddLocation);
             RemoveLocationCommand = new Command(RemoveLocation);
-            ClearLocationsCommand = new Command(() => _locations.Clear());
+            ClearLocationsCommand = new Command(() => Locations.Clear());
             UpdateLocationsCommand = new Command(UpdateLocations);
             ReplaceLocationCommand = new Command(ReplaceLocation);
         }
 
         void AddLocation()
         {
-            _locations.Add(NewLocation());
+            Locations.Add(NewLocation());
         }
 
         void RemoveLocation()
         {
-            if (_locations.Any())
+            if (Locations.Any())
             {
-                _locations.Remove(_locations.First());
+                Locations.Remove(Locations.First());
             }
         }
 
         void UpdateLocations()
         {
-            if (!_locations.Any())
+            if (!Locations.Any())
             {
                 return;
             }
 
-            double lastLatitude = _locations.Last().Position.Latitude;
+            double lastLatitude = Locations.Last().Position.Latitude;
             foreach (Pin location in Locations)
             {
                 var newposted = new Pin()
@@ -104,12 +84,12 @@ namespace PlugEVMe.ViewModels
 
         void ReplaceLocation()
         {
-            if (!_locations.Any())
+            if (!Locations.Any())
             {
                 return;
             }
 
-            _locations[_locations.Count - 1] = NewLocation();
+            Locations[Locations.Count - 1] = NewLocation();
         }
 
         Pin NewLocation()
@@ -117,7 +97,7 @@ namespace PlugEVMe.ViewModels
             return new Pin();
         }
 
-        public override async Task Init(ObservableCollection<PlugEVMeEntry> logEntries)
+        public override async Task Init(ObservableRangeCollection<PlugEVMeEntry> logEntries)
         {
             AnalyticsService.TrackEvent("Entry Detail Page", new Dictionary<string, string>
             {
